@@ -1,0 +1,3 @@
+[submodule "lib/mpc"]
+	path = lib/mpc
+	url = https://github.com/orangeduck/mpc.git
