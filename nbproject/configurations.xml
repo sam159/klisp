@@ -9,7 +9,7 @@
       <itemPath>lenv.h</itemPath>
       <itemPath>lval.h</itemPath>
       <itemPath>main.h</itemPath>
-      <itemPath>../mpc/mpc.h</itemPath>
+      <itemPath>lib/mpc/mpc.h</itemPath>
       <itemPath>util.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -24,7 +24,7 @@
       <itemPath>lenv.c</itemPath>
       <itemPath>lval.c</itemPath>
       <itemPath>main.c</itemPath>
-      <itemPath>../mpc/mpc.c</itemPath>
+      <itemPath>lib/mpc/mpc.c</itemPath>
       <itemPath>util.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -67,10 +67,6 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../mpc/mpc.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../mpc/mpc.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="functions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="functions.h" ex="false" tool="3" flavor2="0">
@@ -82,6 +78,10 @@
       <item path="lenv.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="lenv.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lib/mpc/mpc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="lib/mpc/mpc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lval.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -116,10 +116,6 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="../mpc/mpc.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../mpc/mpc.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="functions.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="functions.h" ex="false" tool="3" flavor2="0">
@@ -131,6 +127,10 @@
       <item path="lenv.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="lenv.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lib/mpc/mpc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="lib/mpc/mpc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lval.c" ex="false" tool="0" flavor2="0">
       </item>

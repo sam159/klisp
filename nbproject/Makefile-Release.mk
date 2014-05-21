@@ -35,10 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1360931409/mpc.o \
 	${OBJECTDIR}/functions.o \
 	${OBJECTDIR}/lang.o \
 	${OBJECTDIR}/lenv.o \
+	${OBJECTDIR}/lib/mpc/mpc.o \
 	${OBJECTDIR}/lval.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/util.o
@@ -68,11 +68,6 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/klisp: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/klisp ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/1360931409/mpc.o: ../mpc/mpc.c 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1360931409
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1360931409/mpc.o ../mpc/mpc.c
-
 ${OBJECTDIR}/functions.o: functions.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -87,6 +82,11 @@ ${OBJECTDIR}/lenv.o: lenv.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lenv.o lenv.c
+
+${OBJECTDIR}/lib/mpc/mpc.o: lib/mpc/mpc.c 
+	${MKDIR} -p ${OBJECTDIR}/lib/mpc
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lib/mpc/mpc.o lib/mpc/mpc.c
 
 ${OBJECTDIR}/lval.o: lval.c 
 	${MKDIR} -p ${OBJECTDIR}
