@@ -99,8 +99,19 @@ void lval_print(lval* val) {
         case LVAL_SYM: printf("%s", val->data.sym); break;
         case LVAL_S_EXPR: lval_expr_print(val, "(", ")"); break;
         case LVAL_Q_EXPR: lval_expr_print(val, "{", "}"); break;
-        case LVAL_FUNC: printf("<%s>", val->data.func.name); break;
         case LVAL_EXIT: printf("exit"); break;
+        case LVAL_FUNC: ;
+            lval_func* func = val->data.func;
+            if (func->builtin != NULL) {
+                printf("<%s>", func->name);
+            } else {
+                printf("(<lambda> ");
+                lval_print(func->formals);
+                putchar(' ');
+                lval_print(func->body);
+                putchar(')');
+            }
+            break;
         case LVAL_ERR:
             printf("Error: ");
             switch(val->data.err.num) {

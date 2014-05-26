@@ -103,7 +103,7 @@ lval* eval_s_expr(lenv* env, lval* val) {
     }
     
     //Call builtin
-    lval* result = func->data.func.call(env, val);
+    lval* result = lval_call(env, func, val);
     lval_delete(func);
     return result;
     

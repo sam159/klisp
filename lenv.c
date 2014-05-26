@@ -7,6 +7,7 @@
 lenv* lenv_new() {
     lenv* env = calloc(1, sizeof(lenv));
     env->count = 0;
+    env->parent = NULL;
     env->syms = NULL;
     return env;
 }
@@ -18,6 +19,15 @@ void lenv_delete(lenv* env) {
     }
     free(env->syms);
     free(env);
+}
+lenv* lenv_copy(lenv* env) {
+    lenv* new = lenv_new();
+    new->parent = env;
+    new->syms = calloc(env->count, sizeof(symtab*));
+    for(int i = 0; i < env->count; i++) {
+        new->syms[i] = symtab_copy(env->syms[i]);
+    }
+    return new;
 }
 
 int lenv_compare_symtabs(const void *lhs, const void *rhs) {
@@ -55,7 +65,16 @@ lval* lenv_get(lenv* env, lval* sym) {
     LASSERT(sym, sym->type == LVAL_SYM, LERR_BAD_OP, "Expected symbol");
     
     symtab* result = lenv_search(env, sym->data.sym);
-    return result != NULL ? lval_copy(result->lval) : lval_err(LERR_BAD_SYM);
+    
+    if (result != NULL) {
+        return lval_copy(result->lval);
+    } else {
+        if (env->parent != NULL) {
+            return lenv_get(env->parent, sym);
+        } else {
+            return lval_err_detail(LERR_BAD_SYM, "Unbound Symbol '%s'", sym->data.sym);
+        }
+    }
 }
 
 void lenv_put(lenv* env, lval* key, lval* val) {
@@ -76,6 +95,12 @@ void lenv_put(lenv* env, lval* key, lval* val) {
     
     lenv_sort(env);
 }
+void lenv_def(lenv* env, lval* key, lval* val) {
+    while(env->parent != NULL) {
+        env = env->parent;
+    }
+    lenv_put(env, key, val);
+}
 
 symtab* symtab_new(char* sym, lval* lval) {
     symtab* new = calloc(1, sizeof(symtab));
@@ -89,4 +114,10 @@ void symtab_delete(symtab* symtab) {
     }
     free(symtab->sym);
     free(symtab);
+}
+symtab* symtab_copy(symtab* symtab) {
+    if (symtab == NULL) {
+        return NULL;
+    }
+    return symtab_new(symtab->sym, symtab->lval);
 }

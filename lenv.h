@@ -25,11 +25,13 @@ extern "C" {
     
     struct lenv {
         size_t count;
+        struct lenv* parent;
         struct symtab** syms;
     };
 
     lenv* lenv_new();
     void lenv_delete(lenv* env);
+    lenv* lenv_copy(lenv* env);
     
     int lenv_compare_symtabs(const void *a, const void *b);
     void lenv_sort(lenv* env);
@@ -37,9 +39,12 @@ extern "C" {
     
     lval* lenv_get(lenv* env, lval* sym);
     void lenv_put(lenv* env, lval* key, lval* val);
+    void lenv_def(lenv* env, lval* key, lval* val);
+    void lenv_var(lenv* env, lval* key, lval* val);
     
     symtab* symtab_new(char* sym, lval* lval);
     void symtab_delete(symtab* symtab);
+    symtab* symtab_copy(symtab* symtab);
 
 #ifdef	__cplusplus
 }

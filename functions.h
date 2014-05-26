@@ -34,9 +34,12 @@ extern "C" {
     lval* builtin_tail(lenv* env, lval* val);
     
     //ENV Functions
+    lval* builtin_envdef(lenv* env, lval* val, char* type);
     lval* builtin_def(lenv* env, lval* val);
+    lval* builtin_var(lenv* env, lval* val);
     lval* builtin_listenv(lenv* env, lval* val);
     lval* builtin_exit(lenv* env, lval* val);
+    lval* builtin_lambda(lenv* env, lval* val);
     
 #ifdef	__cplusplus
 }

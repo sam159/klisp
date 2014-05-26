@@ -35,10 +35,21 @@ lval* lval_q_expr() {
     return val;
 }
 
-lval* lval_func(lbuiltin func, char* name) {
+lval* lval_builtin(lbuiltin func, char* name) {
     lval* val = lval_new(LVAL_FUNC);
-    val->data.func.call = func;
-    val->data.func.name = strdup(name);
+    val->data.func = calloc(1, sizeof(lval_func));
+    val->data.func->builtin = func;
+    val->data.func->name = strdup(name);
+    return val;
+}
+lval* lval_lambda(lval* formals, lval* body) {
+    lval* val = lval_new(LVAL_FUNC);
+    val->data.func = calloc(1, sizeof(lval_func));
+    val->data.func->builtin = NULL;
+    val->data.func->name = NULL;
+    val->data.func->env = lenv_new();
+    val->data.func->formals = formals;
+    val->data.func->body = body;
     return val;
 }
 lval* lval_exit() {
@@ -91,11 +102,43 @@ lval* lval_join(lval* a, lval* b) {
     return a;
 }
 
+lval* lval_call(lenv* env, lval* function, lval* args) {
+    lval_func* func = function->data.func;
+    
+    if (func->builtin != NULL) {
+        return func->builtin(env, args);
+    }
+    
+    //Check arg counts
+    LASSERT(args, func->formals->cell_count <= args->cell_count, LERR_SYNTAX,
+            "lambda: insufficient arguments. Expected %ld got %ld", func->formals->cell_count, args->cell_count);
+    
+    for(int i = 0; i < args->cell_count; i++) {
+        lenv_put(func->env, func->formals->cell_list[i], args->cell_list[i]);
+    }
+    
+    lval_delete(args);
+    
+    func->env->parent = env;
+    
+    return eval(func->env, lval_add(lval_s_expr(), lval_copy(func->body)));
+}
+
 void lval_delete(lval* val) {
     switch(val->type) {
         case LVAL_NUM: break;
         case LVAL_EXIT: break;
-        case LVAL_FUNC: free(val->data.func.name); break;
+        case LVAL_FUNC: 
+            if (val->data.func != NULL) {
+                if (val->data.func->builtin == NULL) {
+                    lenv_delete(val->data.func->env);
+                    lval_delete(val->data.func->formals);
+                    lval_delete(val->data.func->body);
+                } else {
+                    free(val->data.func->name);
+                }
+            }
+            break;
         
         case LVAL_SYM: free(val->data.sym); break;
         case LVAL_ERR: 
@@ -120,9 +163,19 @@ lval* lval_copy(lval* current) {
     lval* new = lval_new(current->type);
     
     switch(current->type) {
-        case LVAL_FUNC: 
-            new->data.func.call = current->data.func.call; 
-            new->data.func.name = strdup(current->data.func.name);
+        case LVAL_FUNC:
+            new->data.func = calloc(1, sizeof(lval_func));
+            lval_func* funcNew = new->data.func;
+            lval_func* funcCurrent = current->data.func;
+            
+            if (funcCurrent->builtin == NULL) {
+                funcNew->env = lenv_copy(funcCurrent->env);
+                funcNew->body = lval_copy(funcCurrent->body);
+                funcNew->formals = lval_copy(funcCurrent->formals);
+            } else {
+                funcNew->builtin = funcCurrent->builtin;
+                funcNew->name = strdup(funcCurrent->name);
+            }
             break;
         case LVAL_NUM: new->data.num = current->data.num; break;
         case LVAL_EXIT: break;

@@ -6,7 +6,7 @@
 
 void lenv_add_builtin(lenv* env, char* sym, lbuiltin func) {
     lval* symval = lval_sym(sym);
-    lval* funcval = lval_func(func, sym);
+    lval* funcval = lval_builtin(func, sym);
     
     lenv_put(env, symval, funcval);
     
@@ -31,8 +31,11 @@ void lenv_add_builtin_funcs(lenv* env) {
     
     //ENV Functions
     lenv_add_builtin(env, "def", builtin_def);
+    lenv_add_builtin(env, "var", builtin_var);
     lenv_add_builtin(env, "listenv", builtin_listenv);
     lenv_add_builtin(env, "exit", builtin_exit);
+    lenv_add_builtin(env, "lambda", builtin_lambda);
+    lenv_add_builtin(env, "\\", builtin_lambda);
 }
 
 lval* builtin_add(lenv* env, lval* val) {
@@ -139,25 +142,35 @@ lval* builtin_tail(lenv* env, lval* val){
     return x;
 }
 
-lval* builtin_def(lenv* env, lval* val) {
-    LASSERT_MIN_ARG_COUNT("def", val, val, 1);
-    LASSERT_TYPE("def", val, val->cell_list[0], LVAL_Q_EXPR);
+lval* builtin_envdef(lenv* env, lval* val, char* type){
+    LASSERT_MIN_ARG_COUNT(type, val, val, 1);
+    LASSERT_TYPE(type, val, val->cell_list[0], LVAL_Q_EXPR);
     
     lval* symbols = val->cell_list[0];
     
     for(int i = 0; i < symbols->cell_count; i++) {
-        LASSERT_TYPE("def", val, symbols->cell_list[i], LVAL_SYM);
+        LASSERT_TYPE(type, val, symbols->cell_list[i], LVAL_SYM);
     }
     
     LASSERT(val, symbols->cell_count == val->cell_count -1,
-            LERR_OTHER, "def: incorrect number of definitions for symbols");
+            LERR_OTHER, "%s: incorrect number of definitions for symbols", type);
     
     for(int i = 0; i < symbols->cell_count; i++) {
-        lenv_put(env, symbols->cell_list[i], val->cell_list[i+1]);
+        if (strcmp(type, "def") == 0) {
+            lenv_def(env, symbols->cell_list[i], val->cell_list[i+1]);
+        } else if (strcmp(type, "var") == 0) {
+            lenv_put(env, symbols->cell_list[i], val->cell_list[i+1]);
+        }
     }
     
     lval_delete(val);
     return lval_s_expr();
+}
+lval* builtin_var(lenv* env, lval* val) {
+    return builtin_envdef(env, val, "var");
+}
+lval* builtin_def(lenv* env, lval* val) {
+    return builtin_envdef(env, val, "def");
 }
 
 lval* builtin_listenv(lenv* env, lval* val) {
@@ -181,4 +194,24 @@ lval* builtin_exit(lenv* env, lval* val) {
     
     lval_delete(val);
     return lval_exit();
+}
+
+lval* builtin_lambda(lenv* env, lval* val) {
+    LASSERT_ARG_COUNT("lambda", val, val, 2);
+    LASSERT_TYPE("lambda", val, val->cell_list[0], LVAL_Q_EXPR);
+    LASSERT_TYPE("lambda", val, val->cell_list[1], LVAL_Q_EXPR);
+    
+    lval* symbols = val->cell_list[0];
+    
+    for(int i = 0; i < symbols->cell_count; i++) {
+        LASSERT_TYPE("lambda args", val, symbols->cell_list[i], LVAL_SYM);
+    }
+    
+    lval* formals = lval_pop(val,0);
+    lval* body = lval_pop(val, 0);
+    body->type = LVAL_S_EXPR;
+    
+    lval* lambda = lval_lambda(formals, body);
+    lval_delete(val);
+    return lambda;
 }

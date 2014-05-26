@@ -12,8 +12,12 @@
 extern "C" {
 #endif
 
+//Forward declarations (if thats what they are called)
 struct lval;
 typedef struct lval lval;
+
+struct lval_func;
+typedef struct lval_func lval_func;
 
 #include "lenv.h"
 
@@ -24,7 +28,15 @@ typedef enum VAL_ERROR VAL_ERROR;
 
 typedef lval*(*lbuiltin)(lenv*, lval*);
 
-typedef struct lval {
+struct lval_func {
+    char* name;
+    lbuiltin builtin;
+    lenv* env;
+    lval* formals;
+    lval* body;
+};
+
+struct lval {
   enum VAL_TYPE type;
   union {
      double_t num;
@@ -33,29 +45,28 @@ typedef struct lval {
         enum VAL_ERROR num;
         char* detail;
      } err;
-     struct {
-         char* name;
-         lbuiltin call;
-     } func;
+     struct lval_func* func;
   } data;
   
   int cell_count;
   struct lval** cell_list;
   
-} lval;
+};
     
 lval* lval_new(int type);
 lval* lval_num(double_t x);
 lval* lval_sym(char* x);
 lval* lval_s_expr();
 lval* lval_q_expr();
-lval* lval_func(lbuiltin func, char* name);
+lval* lval_builtin(lbuiltin func, char* name);
+lval* lval_lambda(lval* formals, lval* body);
 lval* lval_exit();
 
 lval* lval_add(lval* val, lval* x);
 lval* lval_pop(lval* val, int i);
 lval* lval_take(lval* val, int i);
 lval* lval_join(lval* a, lval* b);
+lval* lval_call(lenv* env, lval* function, lval* args);
 
 void lval_delete(lval* val);
 lval* lval_copy(lval* current);
