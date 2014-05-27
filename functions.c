@@ -56,10 +56,7 @@ lval* builtin_pow(lenv* env, lval* val){
 lval* builtin_op(lenv* env, lval* val, char* op) {
     //Ensure numbers only
     for(int i = 0; i < val->cell_count; i++) {
-        if (val->cell_list[i]->type != LVAL_NUM) {
-            lval_delete(val);
-            return lval_err(LERR_BAD_NUM);
-        }
+        LASSERT_TYPE(op, val, val->cell_list[i], LVAL_NUM);
     }
     
     //Get the first element
@@ -78,10 +75,10 @@ lval* builtin_op(lenv* env, lval* val, char* op) {
         if (strcmp(op, "*") == 0) { x->data.num *= y->data.num; }
         if (strcmp(op, "^") == 0) { x->data.num = pow(x->data.num,y->data.num); }
         if (strcmp(op, "/") == 0) {
-            int zero = 0;
-            if (y->type == LVAL_NUM && fabs(y->data.num) <= DBL_EPSILON) {zero = 1;}
+            short divZero = 0;
+            if (y->type == LVAL_NUM && fabs(y->data.num) <= DBL_EPSILON) {divZero = 1;}
 
-            if (zero) {
+            if (divZero) {
                 lval_delete(x);
                 lval_delete(y);
                 x = lval_err(LERR_DIV_ZERO);
@@ -124,8 +121,8 @@ lval* builtin_join(lenv* env, lval* val){
     return x;
 }
 lval* builtin_head(lenv* env, lval* val){
-    LASSERT_ARG_COUNT("head",val , val, 1);
-    LASSERT_TYPE("head",val , val->cell_list[0], LVAL_Q_EXPR);
+    LASSERT_ARG_COUNT("head", val, val, 1);
+    LASSERT_TYPE("head", val, val->cell_list[0], LVAL_Q_EXPR);
     LASSERT_MIN_ARG_COUNT("head", val, val->cell_list[0], 1);
     
     lval* x = lval_take(val, 0);
@@ -202,16 +199,22 @@ lval* builtin_lambda(lenv* env, lval* val) {
     LASSERT_TYPE("lambda", val, val->cell_list[1], LVAL_Q_EXPR);
     
     lval* symbols = val->cell_list[0];
+    lval* va = NULL;
     
     for(int i = 0; i < symbols->cell_count; i++) {
         LASSERT_TYPE("lambda args", val, symbols->cell_list[i], LVAL_SYM);
+        if (strcmp("&", symbols->cell_list[i]->data.sym) == 0 && i+1 == symbols->cell_count) {
+            va = lval_pop(symbols, i);
+            break;
+        }
     }
     
-    lval* formals = lval_pop(val,0);
+    lval* formals = lval_pop(val, 0);
     lval* body = lval_pop(val, 0);
     body->type = LVAL_S_EXPR;
     
     lval* lambda = lval_lambda(formals, body);
+    lambda->data.func->va = va;
     lval_delete(val);
     return lambda;
 }

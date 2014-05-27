@@ -113,8 +113,19 @@ lval* lval_call(lenv* env, lval* function, lval* args) {
     LASSERT(args, func->formals->cell_count <= args->cell_count, LERR_SYNTAX,
             "lambda: insufficient arguments. Expected %ld got %ld", func->formals->cell_count, args->cell_count);
     
-    for(int i = 0; i < args->cell_count; i++) {
+    for(int i = 0; i < func->formals->cell_count; i++) {
         lenv_put(func->env, func->formals->cell_list[i], args->cell_list[i]);
+    }
+    
+    if (func->va != NULL) {
+        lval* vaArgs = lval_q_expr();
+        
+        for(int i = func->formals->cell_count; i < args->cell_count; i ++ ) {
+            lval_add(vaArgs, lval_copy(args->cell_list[i]));
+        }
+        
+        lenv_put(func->env, func->va, vaArgs);
+        lval_delete(vaArgs);
     }
     
     lval_delete(args);

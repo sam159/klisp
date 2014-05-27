@@ -34,6 +34,7 @@ struct lval_func {
     lenv* env;
     lval* formals;
     lval* body;
+    lval* va;
 };
 
 struct lval {
