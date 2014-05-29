@@ -29,6 +29,9 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "<=", builtin_comp_le);
     lenv_add_builtin(env, "==", builtin_comp_eq);
     lenv_add_builtin(env, "!=", builtin_comp_neq);
+    lenv_add_builtin(env, "&&", builtin_logical_and);
+    lenv_add_builtin(env, "||", builtin_logical_or);
+    lenv_add_builtin(env, "!", builtin_logical_not);
     
     //List/Util functions
     lenv_add_builtin(env, "list", builtin_list);
@@ -62,6 +65,10 @@ char* builtin_op_strname(BUILTIN_OP_TYPE op) {
         case BUILTIN_COMP_LE:   return "<=";
         case BUILTIN_COMP_EQ:   return "==";
         case BUILTIN_COMP_NEQ:  return "!=";
+        //Logical Operators
+        case BUILTIN_LOGICAL_AND:   return "&&";
+        case BUILTIN_LOGICAL_OR:    return "||";
+        case BUILTIN_LOGICAL_NOT:   return "!";
         default:                return "UNKNOWN";
     }
 }
@@ -92,7 +99,7 @@ lval* builtin_op(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
             case BUILTIN_OP_POW: x->data.num = pow(x->data.num,y->data.num); break;
             case BUILTIN_OP_DIV: ;
                 short divZero = 0;
-                if (y->type == LVAL_NUM && fabs(y->data.num) <= DBL_EPSILON) {divZero = 1;}
+                if (y->type == LVAL_NUM && LVAL_IS_FALSE(y)) {divZero = 1;}
 
                 if (divZero) {
                     lval_delete(x);
@@ -181,6 +188,54 @@ lval* builtin_comp_eq(lenv* env, lval* val) {
 lval* builtin_comp_neq(lenv* env, lval* val) {
     return builtin_comp_value(env, val, BUILTIN_COMP_NEQ);
 }
+lval* builtin_logical(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
+    int expectedArgs = op == BUILTIN_LOGICAL_NOT ? 1 : 2;
+    char* opName = builtin_op_strname(op);
+    
+    LASSERT_ARG_COUNT(opName, val, val, expectedArgs);
+    LASSERT_TYPE(opName, val, val->cell_list[0], LVAL_NUM);
+    if (expectedArgs == 2) {
+        LASSERT_TYPE(opName, val, val->cell_list[1], LVAL_NUM);
+    }
+    
+    BOOL result = FALSE;
+    
+    switch(op) {
+        case BUILTIN_LOGICAL_AND:
+            if (LVAL_IS_TRUE(val->cell_list[0]) && LVAL_IS_TRUE(val->cell_list[1])) {
+                result = TRUE;
+            }
+            break;
+        case BUILTIN_LOGICAL_OR:
+            if (LVAL_IS_TRUE(val->cell_list[0]) || LVAL_IS_TRUE(val->cell_list[1])) {
+                result = TRUE;
+            }
+            break;
+        case BUILTIN_LOGICAL_NOT:
+            if (LVAL_IS_TRUE(val->cell_list[0])) {
+                result = FALSE;
+            } else {
+                result = TRUE;
+            }
+            break;
+        default:
+            lval_delete(val);
+            return lval_err_detail(LERR_BAD_OP, "Expected logical operator, got %s", opName);
+    }
+    
+    lval_delete(val);
+    return lval_num((int)result);
+    
+}
+lval* builtin_logical_and(lenv* env, lval* val) {
+    return builtin_logical(env, val, BUILTIN_LOGICAL_AND);
+}
+lval* builtin_logical_or(lenv* env, lval* val) {
+    return builtin_logical(env, val, BUILTIN_LOGICAL_OR);
+}
+lval* builtin_logical_not(lenv* env, lval* val) {
+    return builtin_logical(env, val, BUILTIN_LOGICAL_NOT);
+}
 //End Comparison Functions
 
 //Start List/Util functions
@@ -239,9 +294,9 @@ lval* builtin_if(lenv* env, lval* val) {
     val->cell_list[1]->type = LVAL_S_EXPR;
     val->cell_list[2]->type = LVAL_S_EXPR;
     
-    if (fabs(val->cell_list[0]->data.num) > DBL_EPSILON) { //Non Zero == True
+    if (LVAL_IS_TRUE(val->cell_list[0])) {
         result = eval(env, lval_pop(val, 1));
-    } else { //Zero == False
+    } else {
         result = eval(env, lval_pop(val, 2));
     }
     lval_delete(val);

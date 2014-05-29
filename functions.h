@@ -19,7 +19,8 @@ extern "C" {
     enum BUILTIN_OP_TYPE {
         BUILTIN_OP_ADD, BUILTIN_OP_SUB, BUILTIN_OP_DIV, BUILTIN_OP_MUL, BUILTIN_OP_POW,
         BUILTIN_COMP_GT, BUILTIN_COMP_LT, BUILTIN_COMP_GE, BUILTIN_COMP_LE,
-        BUILTIN_COMP_EQ, BUILTIN_COMP_NEQ
+        BUILTIN_COMP_EQ, BUILTIN_COMP_NEQ,
+        BUILTIN_LOGICAL_OR, BUILTIN_LOGICAL_AND, BUILTIN_LOGICAL_NOT
     };
     
     char* builtin_op_strname(BUILTIN_OP_TYPE op);
@@ -45,6 +46,10 @@ extern "C" {
     lval* builtin_comp_value(lenv* env, lval* val, BUILTIN_OP_TYPE op);
     lval* builtin_comp_eq(lenv* env, lval* val);
     lval* builtin_comp_neq(lenv* env, lval* val);
+    lval* builtin_logical(lenv* env, lval* val, BUILTIN_OP_TYPE op);
+    lval* builtin_logical_and(lenv* env, lval* val);
+    lval* builtin_logical_or(lenv* env, lval* val);
+    lval* builtin_logical_not(lenv* env, lval* val);
     
     //List/Util functions
     lval* builtin_list(lenv* env, lval* val);

@@ -22,6 +22,9 @@ typedef struct lval_func lval_func;
 #include "main.h"
 #include "lenv.h"
 
+#define LVAL_IS_TRUE(val) (val->type == LVAL_NUM && fabs(val->data.num) > DBL_EPSILON)
+#define LVAL_IS_FALSE(val) (val->type == LVAL_NUM && fabs(val->data.num) <= DBL_EPSILON)
+
 enum VAL_TYPE { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUNC, LVAL_S_EXPR, LVAL_Q_EXPR, LVAL_EXIT };
 enum VAL_ERROR { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM, LERR_BAD_SYM, LERR_OTHER, LERR_SYNTAX };
 typedef enum VAL_TYPE VAL_TYPE;

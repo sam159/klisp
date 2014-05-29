@@ -16,7 +16,7 @@ mpc_ast_t* tokenize(char *input) {
     mpca_lang(MPCA_LANG_DEFAULT,
         "                                                        \
           number   : /-?[0-9]+(\\.[0-9]+)?/ ;                    \
-          symbol : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;         \
+          symbol : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&\\|]+/ ;         \
           s_expr   : '(' <expr>* ')' ;                           \
           q_expr   : '{' <expr>* '}' ;                           \
           expr     : <number> | <symbol> | <s_expr> | <q_expr> ; \
