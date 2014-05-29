@@ -36,6 +36,7 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "join", builtin_join);
     lenv_add_builtin(env, "head", builtin_head);
     lenv_add_builtin(env, "tail", builtin_tail);
+    lenv_add_builtin(env, "if", builtin_if);
     
     //ENV Functions
     lenv_add_builtin(env, "def", builtin_def);
@@ -226,6 +227,26 @@ lval* builtin_tail(lenv* env, lval* val){
     lval* x = lval_take(val, 0);
     lval_delete(lval_pop(x, 0));
     return x;
+}
+lval* builtin_if(lenv* env, lval* val) {
+    LASSERT_ARG_COUNT("if", val, val, 3);
+    LASSERT_TYPE("if", val, val->cell_list[0], LVAL_NUM);
+    LASSERT_TYPE("if", val, val->cell_list[1], LVAL_Q_EXPR);
+    LASSERT_TYPE("if", val, val->cell_list[2], LVAL_Q_EXPR);
+    
+    lval* result = NULL;
+    
+    val->cell_list[1]->type = LVAL_S_EXPR;
+    val->cell_list[2]->type = LVAL_S_EXPR;
+    
+    if (fabs(val->cell_list[0]->data.num) > DBL_EPSILON) { //Non Zero == True
+        result = eval(env, lval_pop(val, 1));
+    } else { //Zero == False
+        result = eval(env, lval_pop(val, 2));
+    }
+    lval_delete(val);
+    return result;
+    
 }
 //End List/Util functions
 

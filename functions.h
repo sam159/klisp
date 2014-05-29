@@ -52,6 +52,7 @@ extern "C" {
     lval* builtin_join(lenv* env, lval* val);
     lval* builtin_head(lenv* env, lval* val);
     lval* builtin_tail(lenv* env, lval* val);
+    lval* builtin_if(lenv* env, lval* val);
     
     //ENV Functions
     lval* builtin_envdef(lenv* env, lval* val, char* type);
