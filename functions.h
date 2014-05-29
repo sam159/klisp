@@ -14,17 +14,33 @@ extern "C" {
 
 #include "lang.h"
     
+    typedef enum BUILTIN_OP_TYPE BUILTIN_OP_TYPE;
+    
+    enum BUILTIN_OP_TYPE {
+        BUILTIN_OP_ADD, BUILTIN_OP_SUB, BUILTIN_OP_DIV, BUILTIN_OP_MUL, BUILTIN_OP_POW,
+        BUILTIN_COMP_GT, BUILTIN_COMP_LT, BUILTIN_COMP_GE, BUILTIN_COMP_LE
+    };
+    
+    char* builtin_op_strname(BUILTIN_OP_TYPE op);
+    
     void lenv_add_builtin(lenv* env, char* sym, lbuiltin func);
     
     void lenv_add_builtin_funcs(lenv* env);
     
     //Math functions
+    lval* builtin_op(lenv* env, lval* val, BUILTIN_OP_TYPE op);
     lval* builtin_add(lenv* env, lval* val);
     lval* builtin_sub(lenv* env, lval* val);
     lval* builtin_div(lenv* env, lval* val);
     lval* builtin_mul(lenv* env, lval* val);
     lval* builtin_pow(lenv* env, lval* val);
-    lval* builtin_op(lenv* env, lval* val, char* op);
+    
+    //Comparison Functions
+    lval* builtin_comp(lenv* env, lval* val, BUILTIN_OP_TYPE op);
+    lval* builtin_comp_gt(lenv* env, lval* val);
+    lval* builtin_comp_lt(lenv* env, lval* val);
+    lval* builtin_comp_ge(lenv* env, lval* val);
+    lval* builtin_comp_le(lenv* env, lval* val);
     
     //List/Util functions
     lval* builtin_list(lenv* env, lval* val);

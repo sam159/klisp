@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
                 lval_println(exitcode);
                 lval_delete(exitcode);
                 lval_delete(sym);
+                
+                fflush(stdout);
                 break;
             }
         }

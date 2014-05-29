@@ -22,6 +22,12 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "*", builtin_mul);
     lenv_add_builtin(env, "^", builtin_pow);
     
+    //Comparison functions
+    lenv_add_builtin(env, ">", builtin_comp_gt);
+    lenv_add_builtin(env, "<", builtin_comp_lt);
+    lenv_add_builtin(env, ">=", builtin_comp_ge);
+    lenv_add_builtin(env, "<=", builtin_comp_le);
+    
     //List/Util functions
     lenv_add_builtin(env, "list", builtin_list);
     lenv_add_builtin(env, "eval", builtin_eval);
@@ -38,31 +44,35 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "\\", builtin_lambda);
 }
 
-lval* builtin_add(lenv* env, lval* val) {
-    return builtin_op(env, val, "+");
+char* builtin_op_strname(BUILTIN_OP_TYPE op) {
+    switch(op) {
+        // Operators
+        case BUILTIN_OP_ADD:    return "+";
+        case BUILTIN_OP_SUB:    return "-";
+        case BUILTIN_OP_MUL:    return "*";
+        case BUILTIN_OP_DIV:    return "/";
+        case BUILTIN_OP_POW:    return "^";
+        // Comparisons
+        case BUILTIN_COMP_GT:   return ">";
+        case BUILTIN_COMP_LT:   return "<";
+        case BUILTIN_COMP_GE:   return ">=";
+        case BUILTIN_COMP_LE:   return "<=";
+        default:                return "UNKNOWN";
+    }
 }
-lval* builtin_sub(lenv* env, lval* val) {
-    return builtin_op(env, val, "-");
-}
-lval* builtin_div(lenv* env, lval* val) {
-    return builtin_op(env, val, "+");
-}
-lval* builtin_mul(lenv* env, lval* val) {
-    return builtin_op(env, val, "*");
-}
-lval* builtin_pow(lenv* env, lval* val){
-    return builtin_op(env, val, "^");
-}
-lval* builtin_op(lenv* env, lval* val, char* op) {
+
+//Start Math Functions
+lval* builtin_op(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
+    
     //Ensure numbers only
     for(int i = 0; i < val->cell_count; i++) {
-        LASSERT_TYPE(op, val, val->cell_list[i], LVAL_NUM);
+        LASSERT_TYPE(builtin_op_strname(op), val, val->cell_list[i], LVAL_NUM);
     }
     
     //Get the first element
     lval* x = lval_pop(val, 0);
     
-    if (strcmp(op, "-") == 0 && val->cell_count == 0) {
+    if (op == BUILTIN_OP_SUB && val->cell_count == 0) {
         x->data.num = -x->data.num;
     } 
     
@@ -70,21 +80,28 @@ lval* builtin_op(lenv* env, lval* val, char* op) {
         //Get next to process
         lval* y = lval_pop(val, 0);
         
-        if (strcmp(op, "+") == 0) { x->data.num += y->data.num; }
-        if (strcmp(op, "-") == 0) { x->data.num -= y->data.num; }
-        if (strcmp(op, "*") == 0) { x->data.num *= y->data.num; }
-        if (strcmp(op, "^") == 0) { x->data.num = pow(x->data.num,y->data.num); }
-        if (strcmp(op, "/") == 0) {
-            short divZero = 0;
-            if (y->type == LVAL_NUM && fabs(y->data.num) <= DBL_EPSILON) {divZero = 1;}
+        switch(op) {
+            case BUILTIN_OP_ADD: x->data.num += y->data.num; break;
+            case BUILTIN_OP_SUB: x->data.num -= y->data.num; break;
+            case BUILTIN_OP_MUL: x->data.num *= y->data.num; break;
+            case BUILTIN_OP_POW: x->data.num = pow(x->data.num,y->data.num); break;
+            case BUILTIN_OP_DIV: ;
+                short divZero = 0;
+                if (y->type == LVAL_NUM && fabs(y->data.num) <= DBL_EPSILON) {divZero = 1;}
 
-            if (divZero) {
-                lval_delete(x);
-                lval_delete(y);
-                x = lval_err(LERR_DIV_ZERO);
+                if (divZero) {
+                    lval_delete(x);
+                    lval_delete(y);
+                    x = lval_err(LERR_DIV_ZERO);
+                    break;
+                } else {
+                    x->data.num /= y->data.num;
+                }
                 break;
-            }
-            x->data.num /= y->data.num;
+            default:
+                lval_delete(val);
+                return lval_err_detail(LERR_BAD_OP, "expected operator got %s", builtin_op_strname(op));
+                break;
         }
         
         lval_delete(y);
@@ -93,7 +110,59 @@ lval* builtin_op(lenv* env, lval* val, char* op) {
     lval_delete(val);
     return x;
 }
+lval* builtin_add(lenv* env, lval* val) {
+    return builtin_op(env, val, BUILTIN_OP_ADD);
+}
+lval* builtin_sub(lenv* env, lval* val) {
+    return builtin_op(env, val, BUILTIN_OP_SUB);
+}
+lval* builtin_div(lenv* env, lval* val) {
+    return builtin_op(env, val, BUILTIN_OP_DIV);
+}
+lval* builtin_mul(lenv* env, lval* val) {
+    return builtin_op(env, val, BUILTIN_OP_MUL);
+}
+lval* builtin_pow(lenv* env, lval* val){
+    return builtin_op(env, val, BUILTIN_OP_POW);
+}
+//End Math Functions
 
+//Start Comparison Functions
+lval* builtin_comp(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
+    char* opName = builtin_op_strname(op);
+    LASSERT_ARG_COUNT(opName, val, val, 2);
+    LASSERT_TYPE(opName, val, val->cell_list[0], LVAL_NUM);
+    LASSERT_TYPE(opName, val, val->cell_list[1], LVAL_NUM);
+    
+    int r = 0;
+    switch(op) {
+        case BUILTIN_COMP_GT: r = val->cell_list[0]->data.num > val->cell_list[1]->data.num; break;
+        case BUILTIN_COMP_LT: r = val->cell_list[0]->data.num < val->cell_list[1]->data.num; break;
+        case BUILTIN_COMP_GE: r = val->cell_list[0]->data.num >= val->cell_list[1]->data.num; break;
+        case BUILTIN_COMP_LE: r = val->cell_list[0]->data.num <= val->cell_list[1]->data.num; break;
+        default:
+            lval_delete(val);
+            return lval_err_detail(LERR_BAD_OP, "Invalid comparison got %s", builtin_op_strname(op));
+            break;
+    }
+    lval_delete(val);
+    return lval_num(r);
+}
+lval* builtin_comp_gt(lenv* env, lval* val) {
+    return builtin_comp(env, val, BUILTIN_COMP_GT);
+}
+lval* builtin_comp_lt(lenv* env, lval* val) {
+    return builtin_comp(env, val, BUILTIN_COMP_LT);
+}
+lval* builtin_comp_ge(lenv* env, lval* val) {
+    return builtin_comp(env, val, BUILTIN_COMP_GE);
+}
+lval* builtin_comp_le(lenv* env, lval* val) {
+    return builtin_comp(env, val, BUILTIN_COMP_LE);
+}
+//End Comparison Functions
+
+//Start List/Util functions
 lval* builtin_list(lenv* env, lval* val){
     val->type = LVAL_Q_EXPR;
     return val;
@@ -138,7 +207,9 @@ lval* builtin_tail(lenv* env, lval* val){
     lval_delete(lval_pop(x, 0));
     return x;
 }
+//End List/Util functions
 
+//Start ENV Functions
 lval* builtin_envdef(lenv* env, lval* val, char* type){
     LASSERT_MIN_ARG_COUNT(type, val, val, 1);
     LASSERT_TYPE(type, val, val->cell_list[0], LVAL_Q_EXPR);
@@ -218,3 +289,4 @@ lval* builtin_lambda(lenv* env, lval* val) {
     lval_delete(val);
     return lambda;
 }
+//End ENV Functions
