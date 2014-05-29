@@ -27,6 +27,8 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "<", builtin_comp_lt);
     lenv_add_builtin(env, ">=", builtin_comp_ge);
     lenv_add_builtin(env, "<=", builtin_comp_le);
+    lenv_add_builtin(env, "==", builtin_comp_eq);
+    lenv_add_builtin(env, "!=", builtin_comp_neq);
     
     //List/Util functions
     lenv_add_builtin(env, "list", builtin_list);
@@ -57,6 +59,8 @@ char* builtin_op_strname(BUILTIN_OP_TYPE op) {
         case BUILTIN_COMP_LT:   return "<";
         case BUILTIN_COMP_GE:   return ">=";
         case BUILTIN_COMP_LE:   return "<=";
+        case BUILTIN_COMP_EQ:   return "==";
+        case BUILTIN_COMP_NEQ:  return "!=";
         default:                return "UNKNOWN";
     }
 }
@@ -74,7 +78,7 @@ lval* builtin_op(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
     
     if (op == BUILTIN_OP_SUB && val->cell_count == 0) {
         x->data.num = -x->data.num;
-    } 
+    }
     
     while(val->cell_count > 0) {
         //Get next to process
@@ -128,7 +132,7 @@ lval* builtin_pow(lenv* env, lval* val){
 //End Math Functions
 
 //Start Comparison Functions
-lval* builtin_comp(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
+lval* builtin_comp_num(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
     char* opName = builtin_op_strname(op);
     LASSERT_ARG_COUNT(opName, val, val, 2);
     LASSERT_TYPE(opName, val, val->cell_list[0], LVAL_NUM);
@@ -149,16 +153,32 @@ lval* builtin_comp(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
     return lval_num(r);
 }
 lval* builtin_comp_gt(lenv* env, lval* val) {
-    return builtin_comp(env, val, BUILTIN_COMP_GT);
+    return builtin_comp_num(env, val, BUILTIN_COMP_GT);
 }
 lval* builtin_comp_lt(lenv* env, lval* val) {
-    return builtin_comp(env, val, BUILTIN_COMP_LT);
+    return builtin_comp_num(env, val, BUILTIN_COMP_LT);
 }
 lval* builtin_comp_ge(lenv* env, lval* val) {
-    return builtin_comp(env, val, BUILTIN_COMP_GE);
+    return builtin_comp_num(env, val, BUILTIN_COMP_GE);
 }
 lval* builtin_comp_le(lenv* env, lval* val) {
-    return builtin_comp(env, val, BUILTIN_COMP_LE);
+    return builtin_comp_num(env, val, BUILTIN_COMP_LE);
+}
+
+lval* builtin_comp_value(lenv* env, lval* val, BUILTIN_OP_TYPE op) {
+    LASSERT_ARG_COUNT(builtin_op_strname(op), val, val, 2);
+    BOOL result = FALSE;
+    result = lval_equal(val->cell_list[0], val->cell_list[1]);
+    if (op == BUILTIN_COMP_NEQ) {
+        result = !result;
+    }
+    return lval_num((int)result);
+}
+lval* builtin_comp_eq(lenv* env, lval* val) {
+    return builtin_comp_value(env, val, BUILTIN_COMP_EQ);
+}
+lval* builtin_comp_neq(lenv* env, lval* val) {
+    return builtin_comp_value(env, val, BUILTIN_COMP_NEQ);
 }
 //End Comparison Functions
 

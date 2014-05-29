@@ -58,7 +58,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-lm `pkg-config --libs libedit`  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -71,37 +71,37 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/klisp: ${OBJECTFILES}
 ${OBJECTDIR}/functions.o: functions.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/functions.o functions.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/functions.o functions.c
 
 ${OBJECTDIR}/lang.o: lang.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lang.o lang.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lang.o lang.c
 
 ${OBJECTDIR}/lenv.o: lenv.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lenv.o lenv.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lenv.o lenv.c
 
 ${OBJECTDIR}/lib/mpc/mpc.o: lib/mpc/mpc.c 
 	${MKDIR} -p ${OBJECTDIR}/lib/mpc
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lib/mpc/mpc.o lib/mpc/mpc.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lib/mpc/mpc.o lib/mpc/mpc.c
 
 ${OBJECTDIR}/lval.o: lval.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lval.o lval.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lval.o lval.c
 
 ${OBJECTDIR}/main.o: main.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
 
 ${OBJECTDIR}/util.o: util.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/util.o util.c
+	$(COMPILE.c) -O3 -w -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/util.o util.c
 
 # Subprojects
 .build-subprojects:

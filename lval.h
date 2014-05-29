@@ -19,6 +19,7 @@ typedef struct lval lval;
 struct lval_func;
 typedef struct lval_func lval_func;
 
+#include "main.h"
 #include "lenv.h"
 
 enum VAL_TYPE { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUNC, LVAL_S_EXPR, LVAL_Q_EXPR, LVAL_EXIT };
@@ -67,7 +68,9 @@ lval* lval_add(lval* val, lval* x);
 lval* lval_pop(lval* val, int i);
 lval* lval_take(lval* val, int i);
 lval* lval_join(lval* a, lval* b);
+
 lval* lval_call(lenv* env, lval* function, lval* args);
+BOOL lval_equal(lval* a, lval* b);
 
 void lval_delete(lval* val);
 lval* lval_copy(lval* current);

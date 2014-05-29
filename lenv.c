@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <bits/stdlib-bsearch.h>
 
 #include "lang.h"
 #include "util.h"

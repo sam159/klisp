@@ -13,12 +13,17 @@ extern "C" {
 #endif
     
 #define VERSION "0.1"
+    
+    typedef unsigned char BOOL;
+    
+#define TRUE 1
+#define FALSE 0
 
-int main(int argc, char** argv);
+    int main(int argc, char** argv);
 
-void lval_expr_print(lval* val, char* open, char* close);
-void lval_print(lval* val);
-void lval_println(lval* val);
+    void lval_expr_print(lval* val, char* open, char* close);
+    void lval_print(lval* val);
+    void lval_println(lval* val);
 
 #ifdef	__cplusplus
 }

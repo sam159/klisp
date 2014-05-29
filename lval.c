@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <float.h>
 
 #include "lang.h"
 #include "util.h"
@@ -133,6 +134,45 @@ lval* lval_call(lenv* env, lval* function, lval* args) {
     func->env->parent = env;
     
     return eval(func->env, lval_add(lval_s_expr(), lval_copy(func->body)));
+}
+
+BOOL lval_equal(lval* a, lval* b) {
+    if (a->type != b->type) {
+        return FALSE;
+    }
+    
+    switch(a->type) {
+        case LVAL_ERR:  return a->data.err.num == b->data.err.num;
+        case LVAL_EXIT: return TRUE;
+        case LVAL_NUM:  return fabs(a->data.num - b->data.num) <= DBL_EPSILON;
+        case LVAL_SYM:  return strcmp(a->data.sym, b->data.sym) == 0;
+        case LVAL_FUNC:
+            if (a->data.func->builtin != NULL) {
+                if (b->data.func->builtin != NULL) {
+                    return a->data.func->builtin == a->data.func->builtin;
+                } else {
+                    return FALSE;
+                }
+            } else {
+                if (b->data.func->builtin == NULL) {
+                    return FALSE;
+                } else {
+                    return lval_equal(b->data.func->formals, b->data.func->formals)
+                        && lval_equal(b->data.func->body, b->data.func->body);
+                }
+            }
+        case LVAL_Q_EXPR:
+        case LVAL_S_EXPR:
+            if (a->cell_count != b->cell_count) { return 0; }
+            for (int i = 0; i < a->cell_count; i++) {
+                if (!lval_equal(a->cell_list[i], b->cell_list[i])) {
+                    return FALSE;
+                }
+            }
+            return TRUE;
+            
+        default: return FALSE;
+    }
 }
 
 void lval_delete(lval* val) {

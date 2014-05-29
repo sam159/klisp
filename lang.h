@@ -34,6 +34,8 @@ extern "C" {
     LASSERT(val, subject->cell_count >= expectedNum, \
             LERR_SYNTAX, "%s Expected %ld or more arguments got %ld", name, expectedNum, subject->cell_count )
     
+    
+    
     mpc_ast_t* tokenize(char *input);
     lval* parse(mpc_ast_t *t);
     lval* eval_builtin_op(lval* val, char* op);
