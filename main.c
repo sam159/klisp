@@ -14,6 +14,7 @@
 #include "mpc.h"
 #include "lang.h"
 #include "main.h"
+#include "util.h"
 
 /*
  * 
@@ -25,6 +26,25 @@ int main(int argc, char** argv) {
     //Init environment
     lenv* env = lenv_new();
     lenv_add_builtin_funcs(env);
+    setup_parsers();
+    
+    //Attempt to import/run files specified on the command line
+    if (argc > 1) {
+        for(int i = 1; i < argc; i++) {
+            printf("Loading File \"%s\"\n", argv[i]);
+            lval* loadargs = lval_add(lval_s_expr(), lval_str(argv[i]));
+            
+            lval* result = builtin_load(env, loadargs);
+            
+            if (result->type == LVAL_ERR) {
+                lval_println(result);
+            }
+            
+            lval_delete(result);
+        }
+    }
+    
+    int exitcode = EXIT_SUCCESS;
     
     while(1) {
         char *input = readline("> ");
@@ -48,9 +68,10 @@ int main(int argc, char** argv) {
             //Evaluate
             result = eval(env, result);
             
-            int exit = 0;
+            BOOL exit = FALSE;
             if (result != NULL && result->type == LVAL_EXIT) {
-                exit = 1;
+                exit = TRUE;
+                exitcode = result->data.exitcode;
             } else {
                 //print the result
                 lval_println(result);
@@ -60,16 +81,7 @@ int main(int argc, char** argv) {
             lval_delete(result);
             mpc_ast_delete(ast_result);
             
-            if (exit == 1) {
-                printf("Program Terminated: ");
-                
-                lval* sym = lval_sym("exitcode");
-                lval* exitcode = lenv_get(env, sym);
-                lval_println(exitcode);
-                lval_delete(exitcode);
-                lval_delete(sym);
-                
-                fflush(stdout);
+            if (exit == TRUE) {;
                 break;
             }
         }
@@ -77,8 +89,9 @@ int main(int argc, char** argv) {
     }
     
     lenv_delete(env);
+    cleanup_parsers();
     
-    return (EXIT_SUCCESS);
+    return (exitcode);
 }
 
 void lval_expr_print(lval* val, char* open, char* close) {
@@ -99,6 +112,7 @@ void lval_print(lval* val) {
     switch(val->type) {
         case LVAL_NUM: printf("%g", val->data.num); break;
         case LVAL_SYM: printf("%s", val->data.sym); break;
+        case LVAL_STR: lval_print_str(val); break;
         case LVAL_S_EXPR: lval_expr_print(val, "(", ")"); break;
         case LVAL_Q_EXPR: lval_expr_print(val, "{", "}"); break;
         case LVAL_EXIT: printf("exit"); break;
@@ -131,7 +145,15 @@ void lval_print(lval* val) {
             break;
     }
 }
+
 void lval_println(lval* val) {
     lval_print(val);
     putchar('\n');
+}
+
+void lval_print_str(lval* val) {
+    char* escaped = strdup(val->data.str);
+    escaped = mpcf_escape(escaped);
+    printf("\"%s\"", escaped);
+    free(escaped);
 }

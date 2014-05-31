@@ -16,6 +16,7 @@ extern "C" {
 #include "lval.h"
 #include "lenv.h"
 #include "functions.h"
+#include "shared.h"
     
 #define LASSERT(val, cond, errnum, errdetail, ...) \
     if (!(cond)) { \
@@ -34,14 +35,13 @@ extern "C" {
     LASSERT(val, subject->cell_count >= expectedNum, \
             LERR_SYNTAX, "%s Expected %ld or more arguments got %ld", name, expectedNum, subject->cell_count )
     
-    
-    
     mpc_ast_t* tokenize(char *input);
+    void setup_parsers();
+    void cleanup_parsers();
     lval* parse(mpc_ast_t *t);
-    lval* eval_builtin_op(lval* val, char* op);
-    lval* eval_s_expr(lenv* env, lval* val);
+    lval* parse_read_string(mpc_ast_t* t);
     lval* eval(lenv* env, lval* val);
-
+    lval* eval_s_expr(lenv* env, lval* val);
 
 #ifdef	__cplusplus
 }

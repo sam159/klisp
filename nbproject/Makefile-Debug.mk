@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/lib/mpc/mpc.o \
 	${OBJECTDIR}/lval.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/shared.o \
 	${OBJECTDIR}/util.o
 
 
@@ -97,6 +98,11 @@ ${OBJECTDIR}/main.o: main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -Wall -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
+
+${OBJECTDIR}/shared.o: shared.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Wall -Ilib/mpc `pkg-config --cflags libedit` -std=c99  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/shared.o shared.c
 
 ${OBJECTDIR}/util.o: util.c 
 	${MKDIR} -p ${OBJECTDIR}

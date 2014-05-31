@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <float.h>
+#include <limits.h>
+#include <unistd.h>
 
 #include "lang.h"
 #include "main.h"
@@ -48,6 +50,7 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "exit", builtin_exit);
     lenv_add_builtin(env, "lambda", builtin_lambda);
     lenv_add_builtin(env, "\\", builtin_lambda);
+    lenv_add_builtin(env, "load", builtin_load);
 }
 
 char* builtin_op_strname(BUILTIN_OP_TYPE op) {
@@ -347,17 +350,20 @@ lval* builtin_listenv(lenv* env, lval* val) {
 }
 
 lval* builtin_exit(lenv* env, lval* val) {
-    lval* args = lval_q_expr();
-    for(int i=0; i<val->cell_count; i++) {
-        lval_add(args, lval_copy(val->cell_list[i]));
+    LASSERT_ARG_COUNT("exit", val, val, 1);
+    LASSERT_TYPE("exit", val, val->cell_list[0], LVAL_NUM);
+    
+    double exitcode = val->cell_list[0]->data.num;
+    exitcode = floor(exitcode >= 0 ? exitcode+0.5 : exitcode-0.5);
+    
+    if (exitcode < SHRT_MIN) { 
+        exitcode = SHRT_MIN;
+    } else if (exitcode > SHRT_MAX) {
+        exitcode = SHRT_MAX;
     }
-    lval* sym = lval_sym("exitcode");
-    lenv_put(env, sym, args);
-    lval_delete(args);
-    lval_delete(sym);
     
     lval_delete(val);
-    return lval_exit();
+    return lval_exit((short)exitcode);
 }
 
 lval* builtin_lambda(lenv* env, lval* val) {
@@ -384,5 +390,46 @@ lval* builtin_lambda(lenv* env, lval* val) {
     lambda->data.func->va = va;
     lval_delete(val);
     return lambda;
+}
+lval* builtin_load(lenv* env, lval* val) {
+    LASSERT_ARG_COUNT("load", val, val, 1);
+    LASSERT_TYPE("load", val, val->cell_list[0], LVAL_STR);
+    
+    char* filename = val->cell_list[0]->data.str;
+    
+    mpc_result_t result;
+    if (mpc_parse_contents(filename, gLispy, &result)) {
+        
+        //Evaluate the read lisp file
+        lval* resultLval = parse(result.output);
+        mpc_ast_delete(result.output);
+        lval_println(resultLval);
+        while(resultLval->cell_count > 0) {
+            lval* x = eval(env, lval_pop(resultLval, 0));
+            if (x->type == LVAL_ERR) {
+                lval_println(x);
+            }
+            lval_delete(x);
+        }
+        
+        lval_delete(resultLval);
+        lval_delete(val);
+        
+        return lval_s_expr();
+    } else {
+        //Parse error
+        char* errorMessage = mpc_err_string(result.error);
+        mpc_err_delete(result.error);
+        
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd)-1);
+        printf("dir: %s\n", cwd);
+        
+        lval* err = lval_err_detail(LERR_OTHER,"Load: %s", errorMessage);
+        free(errorMessage);
+        lval_delete(val);
+        
+        return err;
+    }
 }
 //End ENV Functions

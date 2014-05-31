@@ -24,6 +24,7 @@ extern "C" {
     void lval_expr_print(lval* val, char* open, char* close);
     void lval_print(lval* val);
     void lval_println(lval* val);
+    void lval_print_str(lval* val);
 
 #ifdef	__cplusplus
 }

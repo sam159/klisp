@@ -53,8 +53,14 @@ lval* lval_lambda(lval* formals, lval* body) {
     val->data.func->body = body;
     return val;
 }
-lval* lval_exit() {
+lval* lval_exit(short exitcode) {
     lval* val = lval_new(LVAL_EXIT);
+    val->data.exitcode = exitcode;
+    return val;
+}
+lval* lval_str(char* str) {
+    lval* val = lval_new(LVAL_STR);
+    val->data.str = strdup(str);
     return val;
 }
 
@@ -146,6 +152,7 @@ BOOL lval_equal(lval* a, lval* b) {
         case LVAL_EXIT: return TRUE;
         case LVAL_NUM:  return fabs(a->data.num - b->data.num) <= DBL_EPSILON;
         case LVAL_SYM:  return strcmp(a->data.sym, b->data.sym) == 0;
+        case LVAL_STR:  return strcmp(a->data.str, b->data.str) == 0;
         case LVAL_FUNC:
             if (a->data.func->builtin != NULL) {
                 if (b->data.func->builtin != NULL) {
@@ -192,6 +199,7 @@ void lval_delete(lval* val) {
             break;
         
         case LVAL_SYM: free(val->data.sym); break;
+        case LVAL_STR: free(val->data.str); break;
         case LVAL_ERR: 
             if (val->data.err.detail != NULL) {
                 free(val->data.err.detail);
@@ -232,6 +240,7 @@ lval* lval_copy(lval* current) {
         case LVAL_EXIT: break;
         
         case LVAL_SYM: new->data.sym = strdup(current->data.sym); break;
+        case LVAL_STR: new->data.str = strdup(current->data.str); break;
         case LVAL_ERR:
             new->data.err.num = current->data.err.num;
             new->data.err.detail = current->data.err.detail == NULL ? NULL : strdup(current->data.err.detail); 
@@ -283,12 +292,14 @@ lval* lval_err_detail(VAL_ERROR err, char* format, ...){
 
 char* lval_str_name(VAL_TYPE type) {
     switch(type) {
-        case LVAL_ERR: return "Error";
         case LVAL_FUNC: return "Function";
         case LVAL_NUM: return "Numeric";
-        case LVAL_Q_EXPR: return "Q-Expression";
+        case LVAL_STR: return "String";
         case LVAL_SYM: return "Symbol";
+        case LVAL_Q_EXPR: return "Q-Expression";
         case LVAL_S_EXPR: return "S-Expression";
+        case LVAL_EXIT: return "Exit";
+        case LVAL_ERR: return "Error";
         default: return "UNKNOWN";
     }
 }
