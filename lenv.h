@@ -26,6 +26,8 @@ extern "C" {
     struct lenv {
         size_t count;
         struct lenv* parent;
+        char** loaded_files;
+        size_t loaded_files_count;
         struct symtab** syms;
     };
 
@@ -36,6 +38,7 @@ extern "C" {
     int lenv_compare_symtabs(const void *a, const void *b);
     void lenv_sort(lenv* env);
     symtab* lenv_search(lenv* env, char* sym);
+    lenv* lenv_get_root(lenv* env);
     
     lval* lenv_get(lenv* env, lval* sym);
     void lenv_put(lenv* env, lval* key, lval* val);

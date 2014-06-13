@@ -5,6 +5,7 @@
 
 #include "lang.h"
 #include "main.h"
+#include "util.h"
 
 void lenv_add_builtin(lenv* env, char* sym, lbuiltin func) {
     lval* symval = lval_sym(sym);
@@ -392,10 +393,38 @@ lval* builtin_lambda(lenv* env, lval* val) {
     return lambda;
 }
 lval* builtin_load(lenv* env, lval* val) {
-    LASSERT_ARG_COUNT("load", val, val, 1);
+    LASSERT_MIN_ARG_COUNT("load", val, val, 1);
     LASSERT_TYPE("load", val, val->cell_list[0], LVAL_STR);
     
-    char* filename = val->cell_list[0]->data.str;
+    lval* fileval = NULL;
+    lval* option = NULL;
+    
+    if (val->cell_count == 1) {
+        fileval = val->cell_list[0];
+    } else if (val->cell_count > 1) {
+        LASSERT_TYPE("load", val, val->cell_list[1], LVAL_STR);
+        option = val->cell_list[0];
+        fileval = val->cell_list[1];
+    }
+    
+    lenv* rootenv = lenv_get_root(env);
+    
+    char* filename = fileval->data.str;
+    
+    BOOL file_loaded = FALSE;
+    for(int i =0 ; i < rootenv->loaded_files_count; i++) {
+        if (strcmp(filename, rootenv->loaded_files[i]) == 0) {
+            file_loaded = TRUE;
+            break;
+        }
+    }
+    
+    if (option != NULL && strcmp(option->data.str, "once") == 0) {
+        if (file_loaded == TRUE) {
+            lval_delete(val);
+            return lval_s_expr();
+        }
+    }
     
     mpc_result_t result;
     if (mpc_parse_contents(filename, gLispy, &result)) {
@@ -412,18 +441,20 @@ lval* builtin_load(lenv* env, lval* val) {
             lval_delete(x);
         }
         
+        if (file_loaded == FALSE) {
+            rootenv->loaded_files = realloc(rootenv->loaded_files, sizeof(char*) * rootenv->loaded_files_count+1);
+            rootenv->loaded_files[rootenv->loaded_files_count] = strdup(filename);
+            rootenv->loaded_files_count++;
+        }
+        
         lval_delete(resultLval);
         lval_delete(val);
-        
+                
         return lval_s_expr();
     } else {
         //Parse error
         char* errorMessage = mpc_err_string(result.error);
         mpc_err_delete(result.error);
-        
-        char cwd[1024];
-        getcwd(cwd, sizeof(cwd)-1);
-        printf("dir: %s\n", cwd);
         
         lval* err = lval_err_detail(LERR_OTHER,"Load: %s", errorMessage);
         free(errorMessage);

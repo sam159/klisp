@@ -8,15 +8,24 @@ lenv* lenv_new() {
     env->count = 0;
     env->parent = NULL;
     env->syms = NULL;
+    env->loaded_files_count = 0;
+    env->loaded_files = NULL;
     return env;
 }
 void lenv_delete(lenv* env) {
     for(int i = 0; i < env->count; i++) {
-        lval_delete(env->syms[i]->lval);
-        free(env->syms[i]->sym);
-        free(env->syms[i]);
+        symtab_delete(env->syms[i]);
     }
-    free(env->syms);
+    for(int i = 0; i < env->loaded_files_count; i++) {
+        free(env->loaded_files[i]);
+    }
+    if (env->loaded_files_count > 0) {
+        free(env->loaded_files);
+    }
+    if (env->syms != NULL) {
+        free(env->syms);
+    }
+    env->parent = NULL;
     free(env);
 }
 lenv* lenv_copy(lenv* env) {
@@ -58,6 +67,13 @@ symtab* lenv_search(lenv* env, char* sym) {
         return NULL;
     }
     return *result;
+}
+lenv* lenv_get_root(lenv* env) {
+    if (env->parent == NULL) {
+        return env;
+    } else {
+        return lenv_get_root(env->parent);
+    }
 }
 
 lval* lenv_get(lenv* env, lval* sym) {
