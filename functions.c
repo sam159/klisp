@@ -271,6 +271,20 @@ lval* builtin_join(lenv* env, lval* val){
 }
 lval* builtin_head(lenv* env, lval* val){
     LASSERT_ARG_COUNT("head", val, val, 1);
+    
+    if (val->cell_list[0]->type == LVAL_STR) { //Return first character
+        char* strVal = val->cell_list[0]->data.str;
+        char* result = calloc(1, sizeof(char));
+        if (strVal != NULL && strlen(strVal) > 0) {
+            result = calloc(2, sizeof(char));
+            result[0] = strVal[0];
+        }
+        lval_delete(val);
+        lval* resultLval = lval_str(result);
+        free(result);
+        return resultLval;
+    }
+    
     LASSERT_TYPE("head", val, val->cell_list[0], LVAL_Q_EXPR);
     LASSERT_MIN_ARG_COUNT("head", val, val->cell_list[0], 1);
     
@@ -280,6 +294,21 @@ lval* builtin_head(lenv* env, lval* val){
 }
 lval* builtin_tail(lenv* env, lval* val){
     LASSERT_ARG_COUNT("tail",val , val, 1);
+    
+    if (val->cell_list[0]->type == LVAL_STR) { //Return last character
+        char* strVal = val->cell_list[0]->data.str;
+        size_t strLength = strlen(strVal);
+        char* result = calloc(1, sizeof(char));
+        if (strVal != NULL && strLength > 0) {
+            result = calloc(2, sizeof(char));
+            result[0] = strVal[strLength-1]; 
+        }
+        lval_delete(val);
+        lval* resultLval = lval_str(result);
+        free(result);
+        return resultLval;
+    }
+    
     LASSERT_TYPE("tail", val, val->cell_list[0], LVAL_Q_EXPR);
     LASSERT_MIN_ARG_COUNT("tail", val, val->cell_list[0], 1);
     

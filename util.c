@@ -4,7 +4,8 @@
 #include "util.h"
 
 char * strdup(char* s) {
-    char *d = calloc(1, strlen (s) + 1);
+    if (s == NULL) return NULL;
+    char *d = calloc(strlen (s) + 1, sizeof(char));
     if (d == NULL) return NULL;
     strcpy (d,s);
     return d;

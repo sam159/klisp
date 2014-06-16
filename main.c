@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 #include <editline/readline.h>
-#include <editline/history.h>
 
 #include "mpc.h"
 #include "lang.h"
