@@ -52,6 +52,7 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "lambda", builtin_lambda);
     lenv_add_builtin(env, "\\", builtin_lambda);
     lenv_add_builtin(env, "load", builtin_load);
+    lenv_add_builtin(env, "loadonce", builtin_loadonce);
 }
 
 char* builtin_op_strname(BUILTIN_OP_TYPE op) {
@@ -421,20 +422,18 @@ lval* builtin_lambda(lenv* env, lval* val) {
     lval_delete(val);
     return lambda;
 }
+
+lval* builtin_loadonce(lenv* env, lval* val) {
+    return builtin_do_load(env, val, TRUE);
+}
 lval* builtin_load(lenv* env, lval* val) {
-    LASSERT_MIN_ARG_COUNT("load", val, val, 1);
+    return builtin_do_load(env, val, FALSE);
+}
+lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce) {
+    LASSERT_ARG_COUNT("load", val, val, 1);
     LASSERT_TYPE("load", val, val->cell_list[0], LVAL_STR);
     
-    lval* fileval = NULL;
-    lval* option = NULL;
-    
-    if (val->cell_count == 1) {
-        fileval = val->cell_list[0];
-    } else if (val->cell_count > 1) {
-        LASSERT_TYPE("load", val, val->cell_list[1], LVAL_STR);
-        option = val->cell_list[0];
-        fileval = val->cell_list[1];
-    }
+    lval* fileval = val->cell_list[0];
     
     lenv* rootenv = lenv_get_root(env);
     
@@ -448,11 +447,9 @@ lval* builtin_load(lenv* env, lval* val) {
         }
     }
     
-    if (option != NULL && strcmp(option->data.str, "once") == 0) {
-        if (file_loaded == TRUE) {
-            lval_delete(val);
-            return lval_s_expr();
-        }
+    if (loadonce == TRUE && file_loaded == TRUE) {
+        lval_delete(val);
+        return lval_s_expr();
     }
     
     mpc_result_t result;

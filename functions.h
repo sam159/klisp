@@ -67,6 +67,8 @@ extern "C" {
     lval* builtin_exit(lenv* env, lval* val);
     lval* builtin_lambda(lenv* env, lval* val);
     lval* builtin_load(lenv* env, lval* val);
+    lval* builtin_loadonce(lenv* env, lval* val);
+    lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce);
     
 #ifdef	__cplusplus
 }
