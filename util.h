@@ -12,7 +12,8 @@
 extern "C" {
 #endif
 
-char * strdup(char* s);
+char* strdup(const char* s);
+char* vstrcat(int n, ...);
 
 #ifdef	__cplusplus
 }

@@ -258,17 +258,40 @@ lval* builtin_eval(lenv* env, lval* val){
 }
 lval* builtin_join(lenv* env, lval* val){
     LASSERT_MIN_ARG_COUNT("join", val, val, 1);
+    
+    BOOL string = TRUE;
+    size_t totalStringLength = 0;
     for(int i = 0; i < val->cell_count; i++) {
-        LASSERT_TYPE("join", val, val->cell_list[i], LVAL_Q_EXPR);
+        if (val->cell_list[i]->type != LVAL_STR) {
+            string = FALSE;
+            break;
+        } else {
+            totalStringLength += strlen(val->cell_list[i]->data.str);
+        }
     }
     
-    lval* x = lval_pop(val,0);
-    
-    while(val->cell_count > 0) {
-        x = lval_join(x, lval_pop(val, 0));
+    if (string) {
+        char* newStr = calloc(totalStringLength+1, sizeof(char));
+        for(int i = 0; i < val->cell_count; i++) {
+            strcat(newStr, val->cell_list[i]->data.str);
+        }
+        
+        lval* newVal = lval_str(newStr);
+        lval_delete(val);
+        return newVal;
+    } else { //Not string, join lists
+        for(int i = 0; i < val->cell_count; i++) {
+            LASSERT_TYPE("join", val, val->cell_list[i], LVAL_Q_EXPR);
+        }
+
+        lval* x = lval_pop(val,0);
+
+        while(val->cell_count > 0) {
+            x = lval_join(x, lval_pop(val, 0));
+        }
+
+        return x;
     }
-    
-    return x;
 }
 lval* builtin_head(lenv* env, lval* val){
     LASSERT_ARG_COUNT("head", val, val, 1);
