@@ -362,7 +362,7 @@ lval* builtin_envdef(lenv* env, lval* val, char* type){
     }
     
     lval_delete(val);
-    return lval_s_expr();
+    return lval_ok();
 }
 lval* builtin_var(lenv* env, lval* val) {
     return builtin_envdef(env, val, "var");
@@ -377,7 +377,7 @@ lval* builtin_listenv(lenv* env, lval* val) {
         lval_println(env->syms[i]->lval);
     }
     lval_delete(val);
-    return lval_s_expr();
+    return lval_ok();
 }
 
 lval* builtin_exit(lenv* env, lval* val) {
@@ -449,7 +449,7 @@ lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce) {
     
     if (loadonce == TRUE && file_loaded == TRUE) {
         lval_delete(val);
-        return lval_s_expr();
+        return lval_ok();
     }
     
     mpc_result_t result;
@@ -458,7 +458,7 @@ lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce) {
         //Evaluate the read lisp file
         lval* resultLval = parse(result.output);
         mpc_ast_delete(result.output);
-        lval_println(resultLval);
+        
         while(resultLval->cell_count > 0) {
             lval* x = eval(env, lval_pop(resultLval, 0));
             if (x->type == LVAL_ERR) {
@@ -476,7 +476,7 @@ lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce) {
         lval_delete(resultLval);
         lval_delete(val);
                 
-        return lval_s_expr();
+        return lval_ok();
     } else {
         //Parse error
         char* errorMessage = mpc_err_string(result.error);

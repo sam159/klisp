@@ -63,6 +63,10 @@ lval* lval_str(char* str) {
     val->data.str = strdup(str);
     return val;
 }
+lval* lval_ok() {
+    lval* val = lval_new(LVAL_OK);
+    return val;
+}
 
 lval* lval_add(lval* val, lval* x) {
     val->cell_count++;
@@ -149,10 +153,12 @@ BOOL lval_equal(lval* a, lval* b) {
     
     switch(a->type) {
         case LVAL_ERR:  return a->data.err.num == b->data.err.num;
-        case LVAL_EXIT: return TRUE;
         case LVAL_NUM:  return fabs(a->data.num - b->data.num) <= DBL_EPSILON;
         case LVAL_SYM:  return strcmp(a->data.sym, b->data.sym) == 0;
         case LVAL_STR:  return strcmp(a->data.str, b->data.str) == 0;
+        case LVAL_OK:
+        case LVAL_EXIT:
+            return TRUE;
         case LVAL_FUNC:
             if (a->data.func->builtin != NULL) {
                 if (b->data.func->builtin != NULL) {
@@ -186,6 +192,7 @@ void lval_delete(lval* val) {
     switch(val->type) {
         case LVAL_NUM: break;
         case LVAL_EXIT: break;
+        case LVAL_OK: break;
         case LVAL_FUNC: 
             if (val->data.func != NULL) {
                 if (val->data.func->builtin == NULL) {
@@ -238,6 +245,7 @@ lval* lval_copy(lval* current) {
             break;
         case LVAL_NUM: new->data.num = current->data.num; break;
         case LVAL_EXIT: break;
+        case LVAL_OK: break;
         
         case LVAL_SYM: new->data.sym = strdup(current->data.sym); break;
         case LVAL_STR: new->data.str = strdup(current->data.str); break;
@@ -300,6 +308,7 @@ char* lval_str_name(VAL_TYPE type) {
         case LVAL_S_EXPR: return "S-Expression";
         case LVAL_EXIT: return "Exit";
         case LVAL_ERR: return "Error";
+        case LVAL_OK: return "Ok/Success";
         default: return "UNKNOWN";
     }
 }

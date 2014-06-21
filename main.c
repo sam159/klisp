@@ -30,7 +30,6 @@ int main(int argc, char** argv) {
     //Attempt to import/run files specified on the command line
     if (argc > 1) {
         for(int i = 1; i < argc; i++) {
-            printf("Loading File \"%s\"\n", argv[i]);
             lval* loadargs = lval_add(lval_s_expr(), lval_str(argv[i]));
             
             lval* result = builtin_load(env, loadargs);
@@ -115,6 +114,7 @@ void lval_print(lval* val) {
         case LVAL_S_EXPR: lval_expr_print(val, "(", ")"); break;
         case LVAL_Q_EXPR: lval_expr_print(val, "{", "}"); break;
         case LVAL_EXIT: printf("exit"); break;
+        case LVAL_OK: printf("ok"); break;
         case LVAL_FUNC: ;
             lval_func* func = val->data.func;
             if (func->builtin != NULL) {

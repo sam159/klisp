@@ -18,6 +18,7 @@ mpc_ast_t* tokenize(char *input) {
 }
 void setup_parsers() {
     mpc_parser_t* Number = mpc_new("number");
+    mpc_parser_t* Ok = mpc_new("ok");
     mpc_parser_t* Symbol = mpc_new("symbol");
     mpc_parser_t* String = mpc_new("string");
     mpc_parser_t* Comment = mpc_new("comment");
@@ -29,21 +30,23 @@ void setup_parsers() {
     mpca_lang(MPCA_LANG_DEFAULT,
         "                                                        \
           number   : /-?[0-9]+(\\.[0-9]+)?/ ;                    \
+          ok       : /ok/ ;                                      \
           symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&\\|]+/ ;       \
           string   : /\"(\\\\.|[^\"])*\"/ ;                      \
           comment  : /;[^\\r?\\n]*/ ;                            \
           s_expr   : '(' <expr>* ')' ;                           \
           q_expr   : '{' <expr>* '}' ;                           \
-          expr     : <number> | <symbol> | <string>              \
+          expr     : <number> | <ok> | <symbol> | <string>       \
                    | <comment> | <s_expr> | <q_expr> ;           \
           lispy    : /^/ <expr>+ /$/ ;                           \
         ",
-        Number, Symbol, String, Comment, Expr, S_Expr, Q_Expr, Lispy);
+        Number, Ok, Symbol, String, Comment, Expr, S_Expr, Q_Expr, Lispy);
     
     gLispy = Lispy;
     gParsers = calloc(20, sizeof(mpc_parser_t*));
     int i = 0;
     gParsers[i++] = Number;
+    gParsers[i++] = Ok;
     gParsers[i++] = Symbol;
     gParsers[i++] = String;
     gParsers[i++] = Comment;
@@ -68,6 +71,9 @@ lval* parse(mpc_ast_t *t) {
         errno = 0;
         double_t d = strtod(t->contents, NULL);
         return errno != 0 ? lval_err_detail(LERR_BAD_NUM, strerror(errno)) : lval_num(d);
+    }
+    if (strstr(t->tag, "ok")) {
+        return lval_ok();
     }
     if (strstr(t->tag, "symbol")) {
         return lval_sym(t->contents);

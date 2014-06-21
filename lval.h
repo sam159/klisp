@@ -25,7 +25,7 @@ typedef struct lval_func lval_func;
 #define LVAL_IS_TRUE(val) (val->type == LVAL_NUM && fabs(val->data.num) > DBL_EPSILON)
 #define LVAL_IS_FALSE(val) (val->type == LVAL_NUM && fabs(val->data.num) <= DBL_EPSILON)
 
-enum VAL_TYPE { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUNC, LVAL_S_EXPR, LVAL_Q_EXPR, LVAL_EXIT, LVAL_STR };
+enum VAL_TYPE { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUNC, LVAL_S_EXPR, LVAL_Q_EXPR, LVAL_EXIT, LVAL_STR, LVAL_OK };
 enum VAL_ERROR { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM, LERR_BAD_SYM, LERR_OTHER, LERR_SYNTAX };
 typedef enum VAL_TYPE VAL_TYPE;
 typedef enum VAL_ERROR VAL_ERROR;
@@ -69,6 +69,7 @@ lval* lval_builtin(lbuiltin func, char* name);
 lval* lval_lambda(lval* formals, lval* body);
 lval* lval_exit(short exitcode);
 lval* lval_str(char* str);
+lval* lval_ok();
 
 lval* lval_add(lval* val, lval* x);
 lval* lval_pop(lval* val, int i);
