@@ -43,6 +43,7 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "head", builtin_head);
     lenv_add_builtin(env, "tail", builtin_tail);
     lenv_add_builtin(env, "if", builtin_if);
+    lenv_add_builtin(env, "print", builtin_print);
     
     //ENV Functions
     lenv_add_builtin(env, "def", builtin_def);
@@ -53,6 +54,7 @@ void lenv_add_builtin_funcs(lenv* env) {
     lenv_add_builtin(env, "\\", builtin_lambda);
     lenv_add_builtin(env, "load", builtin_load);
     lenv_add_builtin(env, "loadonce", builtin_loadonce);
+    lenv_add_builtin(env, "error", builtin_error);
 }
 
 char* builtin_op_strname(BUILTIN_OP_TYPE op) {
@@ -360,6 +362,14 @@ lval* builtin_if(lenv* env, lval* val) {
     return result;
     
 }
+lval* builtin_print(lenv* env, lval* val) {
+    for(int i = 0; i < val->cell_count; i++) {
+        lval_print(val->cell_list[i]);
+        putchar(' ');
+    }
+    putchar('\n');
+    return lval_ok();
+}
 //End List/Util functions
 
 //Start ENV Functions
@@ -511,5 +521,13 @@ lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce) {
         
         return err;
     }
+}
+lval* builtin_error(lenv* env, lval* val) {
+    LASSERT_ARG_COUNT("error", val, val, 1);
+    LASSERT_TYPE("error", val, val->cell_list[0], LVAL_STR);
+    
+    lval* errorVal = lval_err_detail(LERR_USER, "%s", val->cell_list[0]->data.str);
+    lval_delete(val);
+    return errorVal;
 }
 //End ENV Functions

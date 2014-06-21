@@ -128,18 +128,18 @@ void lval_print(lval* val) {
             }
             break;
         case LVAL_ERR:
-            printf("Error: ");
             switch(val->data.err.num) {
-                case LERR_DIV_ZERO: printf("Divide By Zero"); break;
-                case LERR_BAD_NUM: printf("Bad Number"); break;
-                case LERR_BAD_OP: printf("Invalid Operator"); break;
-                case LERR_BAD_SYM: printf("Unknown/Invalid Symbol"); break;
-                case LERR_OTHER: printf("Unknown Error"); break;
-                case LERR_SYNTAX: printf("Syntax Error"); break;
-                default: printf("Unknown Error"); break;
+                case LERR_DIV_ZERO: fprintf(stderr, "Divide By Zero"); break;
+                case LERR_BAD_NUM: fprintf(stderr,"Bad Number"); break;
+                case LERR_BAD_OP: fprintf(stderr,"Invalid Operator"); break;
+                case LERR_BAD_SYM: fprintf(stderr,"Unknown/Invalid Symbol"); break;
+                case LERR_OTHER: fprintf(stderr,"Unknown/Other Error"); break;
+                case LERR_SYNTAX: fprintf(stderr,"Syntax Error"); break;
+                case LERR_USER: fprintf(stderr,"Runtime Error"); break;
+                default: fprintf(stderr,"Unknown Error"); break;
             }
             if (val->data.err.detail != NULL) {
-                printf(", %s", val->data.err.detail);
+                fprintf(stderr,": %s", val->data.err.detail);
             }
             break;
     }

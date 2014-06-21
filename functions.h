@@ -58,6 +58,7 @@ extern "C" {
     lval* builtin_head(lenv* env, lval* val);
     lval* builtin_tail(lenv* env, lval* val);
     lval* builtin_if(lenv* env, lval* val);
+    lval* builtin_print(lenv* env, lval* val);
     
     //ENV Functions
     lval* builtin_envdef(lenv* env, lval* val, char* type);
@@ -69,6 +70,7 @@ extern "C" {
     lval* builtin_load(lenv* env, lval* val);
     lval* builtin_loadonce(lenv* env, lval* val);
     lval* builtin_do_load(lenv* env, lval* val, BOOL loadonce);
+    lval* builtin_error(lenv* env, lval* val);
     
 #ifdef	__cplusplus
 }

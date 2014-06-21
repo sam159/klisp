@@ -10,7 +10,7 @@ mpc_ast_t* tokenize(char *input) {
     
     if (!mpc_parse("<stdin>", input,gLispy, &result)) {
         success = 0;
-        mpc_err_print(result.error);
+        mpc_err_print_to(result.error, stderr);
         mpc_err_delete(result.error);
     }
     
